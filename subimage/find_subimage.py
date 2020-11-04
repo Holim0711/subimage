@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# vim: set ts=2 expandtab:
 """
 Module: find_subimage.py
 Desc: find instances of an image in another image
@@ -20,14 +18,7 @@ import math
 import sys
 import argparse
 import os
-
-#cv2 is not well package managed, so we bail if it's not present
-try:
-  import cv2
-except ImportError as e:
-  print 'Could not import cv2. Please install current version of opencv and python binding.'
-  print 'This message is provided because opencv is not managed via pypi (pip install) package mgr.'
-  raise e
+import cv2
 
 
 def find_subimages(primary, subimage, confidence=0.80):
@@ -71,8 +62,8 @@ def draw_bounding_boxes(img,connected_components,max_size=0,min_size=0,color=(0,
   for component in connected_components:
     if min_size > 0 and area_bb(component)**0.5<min_size: continue
     if max_size > 0 and area_bb(component)**0.5>max_size: continue
-    (ys,xs)=component[:2]
-    cv2.rectangle(img,(xs.start,ys.start),(xs.stop,ys.stop),color,line_size)
+    ys, xs = component[:2]
+    cv2.rectangle(img, (int(xs.start), int(ys.start)), (int(xs.stop), int(ys.stop)), color, line_size)
 
 def save_output(infile, outfile, connected_components):
   img = cv2.imread(infile)
@@ -88,8 +79,8 @@ def  find_subimages_from_files(primary_image_filename, subimage_filename, confid
   (running separately on each channel and combining the cross correlations?) is probably
   necessary.  
   '''
-  primary = cv2.imread(primary_image_filename, cv2.CV_LOAD_IMAGE_GRAYSCALE)
-  subimage = cv2.imread(subimage_filename, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+  primary = cv2.imread(primary_image_filename, cv2.IMREAD_GRAYSCALE)
+  subimage = cv2.imread(subimage_filename, cv2.IMREAD_GRAYSCALE)
   return find_subimages(primary, subimage, confidence)
 
 
@@ -109,20 +100,21 @@ def main():
   outfile = args.output
 
   if not os.path.isfile(primary_image_filename) or not os.path.isfile(subimage_filename):
-    print 'Please provide a regular existing input files. Use -h option for help.'
-    sys.exit(-1)
+    print('Please provide a regular existing input files. Use -h option for help.')
+    exit()
 
   if args.verbose:
-    print '\tProcessing primary input file ' + primary_image_filename + ' and subimage file ' + primary_image_filename + '.'
-    print '\tGenerating output ' + outfile
+    print('\tProcessing primary input file ' + primary_image_filename + ' and subimage file ' + primary_image_filename + '.')
+    print('\tGenerating output ' + outfile)
 
   image_locations = find_subimages_from_files(primary_image_filename, subimage_filename,confidence=args.confidence,)
+  print(image_locations)
 
   save_output(primary_image_filename, outfile, image_locations)
 
   if args.verbose:
-    print 'Instances of subimage {subimage} in primary image {primary} were found at:'.format(subimage=subimage_filename, primary=primary_image_filename)
-    print str(image_locations)
+    print('Instances of subimage {subimage} in primary image {primary} were found at:'.format(subimage=subimage_filename, primary=primary_image_filename))
+    print(str(image_locations))
 
 if __name__ == '__main__':
   main()
