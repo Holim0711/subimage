@@ -1,9 +1,10 @@
 """
 Module: find_subimage.py
 Desc: find instances of an image in another image
-Author: John O'Neil
-Email: oneil.john@gmail.com
-DATE: Saturday, Sept 21st 2014
+Author1: John O'Neil (oneil.john@gmail.com)
+Author2: Holim Lim (ihl7029@europa.snu.ac.kr)
+DATE1: Sep 21st 2014
+DATE2: Nov 27th 2020
 
   Given two image inputs, find instances of one image in the other.
   This ought not account for scaling or rotation.
@@ -17,12 +18,14 @@ import cv2
 def find_subimages(image, subimage, confidence=0.80):
     sup_edges = cv2.Canny(image, 32, 128, apertureSize=3)
     sub_edges = cv2.Canny(subimage, 32, 128, apertureSize=3)
+    return find_subimages_canny(sup_edges, sub_edges, confidence=confidence)
 
+
+def find_subimages_canny(sup_edges, sub_edges, confidence=0.80):
     result = cv2.matchTemplate(sup_edges, sub_edges, cv2.TM_CCOEFF_NORMED)
     result = np.where(result > confidence, 1.0, 0.0)
-
     ccs = get_connected_components(result)
-    return correct_bounding_boxes(subimage, ccs)  # [(x1, y1, x2, y2), ...]
+    return correct_bounding_boxes(sub_edges, ccs)  # [(x1, y1, x2, y2), ...]
 
 
 def get_connected_components(image):
